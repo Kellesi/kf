@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - '.editorconfig'
+      - '.gitignore'
+      - '*.md'
+  pull_request:
+    branches: [ main, master ]
+    paths-ignore:
+      - '.editorconfig'
+      - '.gitignore'
+      - '*.md'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [windows-2022]
+        config: [Debug, Release]
+        platform: [x86]
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Add GitHub NuGet Source
+      run: |
+        nuget sources Add -Name "GitHub" -Source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" -Username ${{ github.repository_owner }} -Password ${{ secrets.GITHUB_TOKEN }}
+      env:
+        NUGET_CREDENTIALPROVIDER_SESSIONTOKENCACHE_ENABLED: true
+
+    - name: Install WDK via NuGet
+      run: |
+        nuget install Microsoft.Windows.WDK.x86 -Source "GitHub" -OutputDirectory "$env:USERPROFILE\.nuget\packages"
+
+    - name: Set WDKContentRoot
+      run: |
+        echo "WDKContentRoot=$env:USERPROFILE\.nuget\packages\Microsoft.Windows.WDK.x86.10.0.22621.2428" >> $env:GITHUB_ENV
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -A ${{ matrix.platform }} -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+    - name: Build
+      run: |
+        cmake --build build --config ${{ matrix.config }} --parallel

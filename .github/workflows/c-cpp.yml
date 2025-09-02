@@ -35,7 +35,7 @@ jobs:
 
     - name: Add GitHub NuGet Source
       run: |
-        nuget sources Add -Name "GitHub" -Source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" -Username ${{ github.repository_owner }} -Password ${{ secrets.GITHUB_TOKEN }}
+        nuget sources Add -Name "GitHub" -Source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" -Username ${{ github.repository_owner }} -Password ${{ secrets.GITHUB_TOKEN }} -NonInteractive
       env:
         NUGET_CREDENTIALPROVIDER_SESSIONTOKENCACHE_ENABLED: true
 

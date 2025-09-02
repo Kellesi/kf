@@ -43,11 +43,16 @@ jobs:
       run: |
         nuget install Microsoft.Windows.WDK.x86 -Source "GitHub" -OutputDirectory "$env:USERPROFILE\.nuget\packages"
 
-    - name: Configure CMake
+    - name: Set WDKContentRoot
+      shell: pwsh
       run: |
-        cmake -B build -A ${{ matrix.platform }} -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+        $wdkPath = "$env:USERPROFILE\.nuget\packages\Microsoft.Windows.WDK.x86.10.0.22621.2428"
+        echo "WDKContentRoot=$wdkPath" >> $env:GITHUB_ENV
+
+    - name: Configure CMake
+      run: cmake -B build -A ${{ matrix.platform }} -DCMAKE_BUILD_TYPE=${{ matrix.config }}
       env:
-        WDKContentRoot: ${{ secrets.WDKContentRoot }}
+        WDKContentRoot: ${{ env.WDKContentRoot }}
     
     - name: Build
       run: |

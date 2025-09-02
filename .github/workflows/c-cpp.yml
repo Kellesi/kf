@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [windows-2019]
+        os: [windows-2022]
         config: [Debug, Release]
         platform: [x86]
 
@@ -43,13 +43,12 @@ jobs:
       run: |
         nuget install Microsoft.Windows.WDK.x86 -Source "GitHub" -OutputDirectory "$env:USERPROFILE\.nuget\packages"
 
-    - name: Set WDKContentRoot
-      run: |
-        echo "WDKContentRoot=$env:USERPROFILE\.nuget\packages\Microsoft.Windows.WDK.x86.10.0.22621.2428" >> $env:GITHUB_ENV
-
     - name: Configure CMake
       run: |
         cmake -B build -A ${{ matrix.platform }} -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+      env:
+        WDKContentRoot: ${{ secrets.WDKContentRoot }}
+    
     - name: Build
       run: |
         cmake --build build --config ${{ matrix.config }} --parallel
